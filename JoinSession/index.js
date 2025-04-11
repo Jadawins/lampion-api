@@ -8,7 +8,7 @@ module.exports = async function (context, req) {
     if (!sessionName || !pseudo) {
         context.res = {
             status: 400,
-            body: "sessionName et pseudo sont requis."
+            body: "Les champs 'sessionName' et 'pseudo' sont requis."
         };
         return;
     }
@@ -27,20 +27,29 @@ module.exports = async function (context, req) {
         const downloaded = await streamToString(downloadBlockBlobResponse.readableStreamBody);
         sessionData = JSON.parse(downloaded);
     } catch (err) {
-        // Le fichier n'existe pas encore → pas grave
+        // Fichier inexistant → pas de souci, on démarre une nouvelle session
     }
 
-    // Évite les doublons
-    if (!sessionData.joueurs.find(j => j.pseudo === pseudo)) {
-        sessionData.joueurs.push({ pseudo, id: uuidv4() });
+    const joueurExiste = sessionData.joueurs.some(j => j.pseudo.toLowerCase() === pseudo.toLowerCase());
+
+    if (joueurExiste) {
+        context.res = {
+            status: 409,
+            body: { message: `Le pseudo '${pseudo}' est déjà utilisé dans cette session.` }
+        };
+        return;
     }
+
+    sessionData.joueurs.push({ pseudo, id: uuidv4() });
 
     const uploadContent = JSON.stringify(sessionData);
-    await blockBlobClient.upload(uploadContent, Buffer.byteLength(uploadContent));
+    await blockBlobClient.upload(uploadContent, Buffer.byteLength(uploadContent), { overwrite: true });
 
     context.res = {
         status: 200,
-        body: { message: "Joueur ajouté à la session.", session: sessionName }
+        body: {
+            message: `Bienvenue ${pseudo}, tu as rejoint la session '${sessionName}'.`
+        }
     };
 };
 

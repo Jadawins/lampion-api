@@ -11,5 +11,5 @@
     "@azure/storage-blob": "^12.27.0",
     "uuid": "^11.1.0"
   },
-  "main": "CreateSession/{index.js,functions/*.js}"
+  "main": ""
 }
