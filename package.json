@@ -7,8 +7,9 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0"
+    "@azure/functions": "^4.0.0",
+    "@azure/storage-blob": "^12.27.0",
+    "uuid": "^11.1.0"
   },
-  "devDependencies": {},
   "main": "CreateSession/{index.js,functions/*.js}"
 }
