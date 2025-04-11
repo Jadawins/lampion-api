@@ -1,43 +1,60 @@
-const { BlobServiceClient } = require("@azure/storage-blob");
+const { BlobServiceClient } = require('@azure/storage-blob');
 
 module.exports = async function (context, req) {
-    const sessionId = req.params.sessionId;
+  const connectionString = process.env.AzureWebJobsStorage;
+  const sessionId = req.params.sessionId; // récupéré depuis l'URL
 
-    if (!sessionId) {
-        context.res = {
-            status: 400,
-            body: "L'ID de session est requis."
-        };
-        return;
+  if (!sessionId) {
+    context.res = {
+      status: 400,
+      body: { message: "L'ID de session est manquant" },
+      headers: { "Content-Type": "application/json" }
+    };
+    return;
+  }
+
+  try {
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient("sessions");
+    const blobClient = containerClient.getBlobClient(`${sessionId}.json`);
+
+    const exists = await blobClient.exists();
+    if (!exists) {
+      context.res = {
+        status: 404,
+        body: { message: "Session introuvable" },
+        headers: { "Content-Type": "application/json" }
+      };
+      return;
     }
 
-    try {
-        const AZURE_STORAGE_CONNECTION_STRING = process.env.AzureWebJobsStorage;
-        const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-        const containerClient = blobServiceClient.getContainerClient("sessions");
-        const blobClient = containerClient.getBlockBlobClient(`${sessionId}.json`);
+    const downloadBlockBlobResponse = await blobClient.download();
+    const downloaded = await streamToText(downloadBlockBlobResponse.readableStreamBody);
 
-        const downloadBlockBlobResponse = await blobClient.download();
-        const content = await streamToString(downloadBlockBlobResponse.readableStreamBody);
-
-        context.res = {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.parse(content)
-        };
-    } catch (err) {
-        context.res = {
-            status: 500,
-            body: `❌ Impossible de récupérer la session ${sessionId}.\n${err.message}`
-        };
-    }
+    context.res = {
+      status: 200,
+      body: JSON.parse(downloaded),
+      headers: { "Content-Type": "application/json" }
+    };
+  } catch (err) {
+    context.log("Erreur dans GetSession:", err.message);
+    context.res = {
+      status: 500,
+      body: { message: "Erreur serveur", error: err.message },
+      headers: { "Content-Type": "application/json" }
+    };
+  }
 };
 
-async function streamToString(readableStream) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        readableStream.on("data", (data) => chunks.push(data.toString()));
-        readableStream.on("end", () => resolve(chunks.join("")));
-        readableStream.on("error", reject);
+async function streamToText(readable) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    readable.on("data", (data) => {
+      chunks.push(data.toString());
     });
+    readable.on("end", () => {
+      resolve(chunks.join(""));
+    });
+    readable.on("error", reject);
+  });
 }
