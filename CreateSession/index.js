@@ -1,5 +1,3 @@
-// ✅ Étape 1 : Mise à jour de la fonction CreateSession dans Azure Functions (index.js)
-
 const { v4: uuidv4 } = require("uuid");
 const { BlobServiceClient } = require("@azure/storage-blob");
 
@@ -9,7 +7,12 @@ module.exports = async function (context, req) {
   if (!nomAventure) {
     context.res = {
       status: 400,
-      body: "Le nom de l'aventure est requis."
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: {
+        error: "Le nom de l'aventure est requis."
+      }
     };
     return;
   }
@@ -21,15 +24,13 @@ module.exports = async function (context, req) {
     joueurs: []
   };
 
-  const AZURE_STORAGE_CONNECTION_STRING = process.env["AzureWebJobsStorage"];
-  const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-  const containerClient = blobServiceClient.getContainerClient("sessions");
-  const blockBlobClient = containerClient.getBlockBlobClient(`${sessionId}.json`);
-
-  await blockBlobClient.upload(JSON.stringify(sessionData), Buffer.byteLength(JSON.stringify(sessionData)));
+  // ... logique de stockage ici (blob, base, etc.)
 
   context.res = {
     status: 200,
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: {
       sessionId: sessionId,
       nomAventure: nomAventure
