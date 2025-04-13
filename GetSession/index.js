@@ -1,48 +1,47 @@
-const { BlobServiceClient } = require('@azure/storage-blob');
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 module.exports = async function (context, req) {
-    const sessionId = context.bindingData.sessionId;
+  const sessionId = context.bindingData.sessionId;
 
-    if (!sessionId) {
-        context.res = {
-            status: 400,
-            body: "L'ID de session est requis dans l'URL."
-        };
-        return;
-    }
+  if (!sessionId) {
+    context.res = {
+      status: 400,
+      body: "ID de session manquant"
+    };
+    return;
+  }
 
-    const AZURE_STORAGE_CONNECTION_STRING = process.env.AzureWebJobsStorage;
+  try {
+    const AZURE_STORAGE_CONNECTION_STRING = process.env["AzureWebJobsStorage"];
     const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
     const containerClient = blobServiceClient.getContainerClient("sessions");
+    const blobClient = containerClient.getBlobClient(`${sessionId}.json`);
 
-    const blobName = `${sessionId}.json`;
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const downloadBlockBlobResponse = await blobClient.download();
+    const downloaded = await streamToString(downloadBlockBlobResponse.readableStreamBody);
+    const sessionData = JSON.parse(downloaded);
 
-    try {
-        const downloadBlockBlobResponse = await blockBlobClient.download();
-        const content = await streamToString(downloadBlockBlobResponse.readableStreamBody);
-
-        context.res = {
-            status: 200,
-            body: JSON.parse(content),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
-    } catch (error) {
-        context.res = {
-            status: 404,
-            body: "Session introuvable ou erreur de lecture."
-        };
-    }
+    context.res = {
+      status: 200,
+      body: sessionData
+    };
+  } catch (err) {
+    context.res = {
+      status: 404,
+      body: "Session introuvable"
+    };
+  }
 };
 
-// Convertit un stream blob en string
 async function streamToString(readableStream) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        readableStream.on("data", (data) => chunks.push(data.toString()));
-        readableStream.on("end", () => resolve(chunks.join("")));
-        readableStream.on("error", reject);
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    readableStream.on("data", (data) => {
+      chunks.push(data.toString());
     });
+    readableStream.on("end", () => {
+      resolve(chunks.join(""));
+    });
+    readableStream.on("error", reject);
+  });
 }

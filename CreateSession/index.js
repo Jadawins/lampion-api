@@ -1,39 +1,38 @@
-const crypto = require('crypto');
-const { BlobServiceClient } = require('@azure/storage-blob');
+// ✅ Étape 1 : Mise à jour de la fonction CreateSession dans Azure Functions (index.js)
+
+const { v4: uuidv4 } = require("uuid");
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 module.exports = async function (context, req) {
-    try {
-        const AZURE_STORAGE_CONNECTION_STRING = process.env.AzureWebJobsStorage;
-        const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-        const containerClient = blobServiceClient.getContainerClient("sessions");
+  const nomAventure = req.query.nomAventure || req.body?.nomAventure;
 
-        const sessionId = crypto.randomBytes(4).toString('hex');
-        const blockBlobClient = containerClient.getBlockBlobClient(`${sessionId}.json`);
-        const initialData = { joueurs: [] };
+  if (!nomAventure) {
+    context.res = {
+      status: 400,
+      body: "Le nom de l'aventure est requis."
+    };
+    return;
+  }
 
-        await blockBlobClient.upload(
-            JSON.stringify(initialData),
-            Buffer.byteLength(JSON.stringify(initialData))
-        );
+  const sessionId = uuidv4().split("-")[0];
+  const sessionData = {
+    nomAventure: nomAventure,
+    etat: "en_attente",
+    joueurs: []
+  };
 
-        context.res = {
-            status: 200,
-            body: {
-                message: "Session créée avec succès.",
-                sessionId: sessionId
-            },
-            headers: {
-                "Content-Type": "application/json"
-            }
-        };
-    } catch (error) {
-        context.log.error("Erreur dans CreateSession:", error.message);
-        context.res = {
-            status: 500,
-            body: {
-                message: "Erreur lors de la création de la session.",
-                details: error.message
-            }
-        };
+  const AZURE_STORAGE_CONNECTION_STRING = process.env["AzureWebJobsStorage"];
+  const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+  const containerClient = blobServiceClient.getContainerClient("sessions");
+  const blockBlobClient = containerClient.getBlockBlobClient(`${sessionId}.json`);
+
+  await blockBlobClient.upload(JSON.stringify(sessionData), Buffer.byteLength(JSON.stringify(sessionData)));
+
+  context.res = {
+    status: 200,
+    body: {
+      sessionId: sessionId,
+      nomAventure: nomAventure
     }
+  };
 };
