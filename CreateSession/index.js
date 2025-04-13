@@ -1,20 +1,24 @@
+// ✅ index.js – Version corrigée pour parser le JSON brut si req.body est undefined
 const { v4: uuidv4 } = require("uuid");
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 module.exports = async function (context, req) {
   context.log("🔍 Requête reçue (méthode POST)");
   context.log("🌐 Headers :", req.headers);
   context.log("📦 Body brut :", req.body);
 
-  // Essaye de lire nomAventure depuis le body
-  let nomAventure = null;
-  if (req.body && typeof req.body === "object") {
-    nomAventure = req.body.nomAventure;
+  let body = req.body;
+
+  // 🔧 Si Azure ne parse pas automatiquement, on le fait à la main
+  if (!body || typeof body !== "object") {
+    try {
+      body = JSON.parse(req.rawBody);
+    } catch (e) {
+      context.log("❌ Erreur parsing JSON manuel :", e);
+    }
   }
 
-  // Fallback depuis les query params
-  if (!nomAventure && req.query?.nomAventure) {
-    nomAventure = req.query.nomAventure;
-  }
+  let nomAventure = body?.nomAventure || req.query?.nomAventure;
 
   if (!nomAventure) {
     context.log("❌ nomAventure manquant !");
@@ -24,7 +28,7 @@ module.exports = async function (context, req) {
         "Content-Type": "application/json"
       },
       body: {
-        error: "Le nom de l'aventure est requis (et non trouvé dans req.body ou req.query)."
+        error: "Le nom de l'aventure est requis."
       }
     };
     return;
@@ -40,7 +44,7 @@ module.exports = async function (context, req) {
   context.log("✅ Session générée :", sessionId);
   context.log("📝 Données session :", sessionData);
 
-  // TODO : ajouter la logique de stockage ici si nécessaire (Blob, etc.)
+  // TODO : Ajouter la logique de stockage ici (Blob, BDD, etc.)
 
   context.res = {
     status: 200,
