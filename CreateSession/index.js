@@ -35,6 +35,7 @@ module.exports = async function (context, req) {
   const sessionData = {
     sessionId,
     nomAventure,
+    sessionActive: false,
     joueurs: []
   };
 
