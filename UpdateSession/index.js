@@ -6,7 +6,7 @@ const containerName = "sessions";
 module.exports = async function (context, req) {
   context.log("🔄 Requête reçue pour mise à jour de session");
 
-  const { sessionId, sessionActive } = req.body || {};
+  const { sessionId, sessionActive, joueurs } = req.body || {};
 
   if (!sessionId) {
     context.res = {
@@ -27,6 +27,9 @@ module.exports = async function (context, req) {
     const sessionData = JSON.parse(downloaded);
 
     sessionData.sessionActive = sessionActive ?? true; // On le met à true si non précisé
+    if (Array.isArray(joueurs)) {
+      sessionData.joueurs = joueurs;
+    }
 
     const updatedContent = JSON.stringify(sessionData);
     await blockBlobClient.upload(updatedContent, Buffer.byteLength(updatedContent), { overwrite: true });
