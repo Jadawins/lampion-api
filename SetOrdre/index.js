@@ -28,6 +28,7 @@ module.exports = async function (context, req) {
 
     sessionData.ordreTour = ordreTour;
     sessionData.indexTour = indexTour;
+    sessionData.combatEnCours = req.body.combatEnCours || false;
 
     await blockBlobClient.upload(
       JSON.stringify(sessionData),
