@@ -6,6 +6,14 @@ const containerName = "sessions";
 module.exports = async function (context, req) {
   const { sessionId, pseudo, initiative, pv, pvMax } = req.body || {};
 
+  if (typeof pvMax === "number" && typeof pv === "number" && pv > pvMax) {
+    context.res = {
+      status: 400,
+      body: { error: `Les PV (${pv}) ne peuvent pas dépasser les PV max (${pvMax}).` }
+    };
+    return;
+  }
+
   if (!sessionId || !pseudo || typeof initiative !== "number" || typeof pv !== "number") {
     context.res = {
       status: 400,
