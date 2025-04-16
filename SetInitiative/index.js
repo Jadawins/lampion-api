@@ -4,7 +4,7 @@ const connectionString = process.env.AzureWebJobsStorage;
 const containerName = "sessions";
 
 module.exports = async function (context, req) {
-  const { sessionId, pseudo, initiative, pv } = req.body || {};
+  const { sessionId, pseudo, initiative, pv, pvMax } = req.body || {};
 
   if (!sessionId || !pseudo || typeof initiative !== "number" || typeof pv !== "number") {
     context.res = {
@@ -32,6 +32,10 @@ module.exports = async function (context, req) {
         body: { error: `Joueur '${pseudo}' introuvable dans la session.` }
       };
       return;
+    }
+
+    if (typeof pvMax === "number") {
+      joueur.pvMax = pvMax;
     }
 
     joueur.initiative = initiative;
