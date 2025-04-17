@@ -21,16 +21,14 @@ module.exports = async function (context, req) {
     const download = await blobClient.download(0);
     const content = await streamToText(download.readableStreamBody);
     const data = JSON.parse(content);
-
     const timestamp = new Date().toISOString();
 
+    // 🧙 Recherche de la cible dans tous les tableaux
     const cibleJoueur = data.joueurs?.find(j => j.pseudo === cible);
     const cibleMonstre = data.monstres?.find(m => m.nom === cible);
     const cibleOrdre = data.ordreTour?.find(e => e.pseudo === cible || e.nom === cible);
 
-    const cibleEntite = cibleJoueur || cibleMonstre || cibleOrdre;
-
-    if (!cibleEntite) {
+    if (!cibleJoueur && !cibleMonstre && !cibleOrdre) {
       context.res = {
         status: 404,
         body: "Cible introuvable."
@@ -38,13 +36,18 @@ module.exports = async function (context, req) {
       return;
     }
 
+    // 🎯 Déterminer la source prioritaire pour les PV
+    const cibleEntite = cibleJoueur || cibleMonstre || cibleOrdre;
     const pvMax = cibleEntite.pvMax || cibleEntite.pv || 100;
     const pvActuel = cibleEntite.pv || 0;
     const nouveauPV = Math.min(pvActuel + soin, pvMax);
 
-    cibleEntite.pv = nouveauPV;
+    // 🛠️ Mise à jour dans TOUS les tableaux où la cible est trouvée
+    if (cibleJoueur) cibleJoueur.pv = nouveauPV;
+    if (cibleMonstre) cibleMonstre.pv = nouveauPV;
+    if (cibleOrdre) cibleOrdre.pv = nouveauPV;
 
-    // Log combat
+    // 📝 Journal de l’action
     if (!data.logCombat) data.logCombat = [];
     data.logCombat.push({
       type: "soin",
@@ -54,6 +57,7 @@ module.exports = async function (context, req) {
       timestamp
     });
 
+    // 💾 Sauvegarde
     const updatedData = JSON.stringify(data, null, 2);
     await blobClient.upload(updatedData, updatedData.length, { overwrite: true });
 
@@ -74,6 +78,7 @@ module.exports = async function (context, req) {
   }
 };
 
+// 🔧 Utilitaire : Convertir stream en texte
 async function streamToText(readable) {
   readable.setEncoding("utf8");
   let data = "";

@@ -26,6 +26,10 @@ module.exports = async function (context, req) {
     const sessionContent = await streamToString(downloadBlockBlobResponse.readableStreamBody);
     const sessionData = JSON.parse(sessionContent);
 
+    if (req.body.monstres) {
+      sessionData.monstres = req.body.monstres;
+    }
+
     sessionData.ordreTour = ordreTour;
     sessionData.indexTour = indexTour;
     sessionData.combatEnCours = req.body.combatEnCours || false;
@@ -57,3 +61,4 @@ async function streamToString(readableStream) {
     readableStream.on("error", reject);
   });
 }
+
