@@ -1,9 +1,6 @@
-// Azure Function : SoinJoueur
-// Objectif : appliquer un soin à une cible (joueur ou monstre) et enregistrer l'action dans logCombat
-
 const { BlobServiceClient } = require("@azure/storage-blob");
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
-const containerName = "sessions"; // Nom du conteneur Blob
+const containerName = "sessions";
 
 module.exports = async function (context, req) {
   const { sessionId, auteur, cible, soin } = req.body;
@@ -29,8 +26,11 @@ module.exports = async function (context, req) {
 
     const cibleJoueur = data.joueurs?.find(j => j.pseudo === cible);
     const cibleMonstre = data.monstres?.find(m => m.nom === cible);
+    const cibleOrdre = data.ordreTour?.find(e => e.pseudo === cible || e.nom === cible);
 
-    if (!cibleJoueur && !cibleMonstre) {
+    const cibleEntite = cibleJoueur || cibleMonstre || cibleOrdre;
+
+    if (!cibleEntite) {
       context.res = {
         status: 404,
         body: "Cible introuvable."
@@ -38,8 +38,7 @@ module.exports = async function (context, req) {
       return;
     }
 
-    const cibleEntite = cibleJoueur || cibleMonstre;
-    const pvMax = cibleEntite.pvMax || cibleEntite.pv || 100; // par défaut 100 si non défini
+    const pvMax = cibleEntite.pvMax || cibleEntite.pv || 100;
     const pvActuel = cibleEntite.pv || 0;
     const nouveauPV = Math.min(pvActuel + soin, pvMax);
 
@@ -74,7 +73,6 @@ module.exports = async function (context, req) {
   }
 };
 
-// Utilitaire pour lire le contenu du blob
 async function streamToText(readable) {
   readable.setEncoding("utf8");
   let data = "";
