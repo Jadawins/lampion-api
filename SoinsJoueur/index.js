@@ -44,6 +44,7 @@ module.exports = async function (context, req) {
 
     cibleEntite.pv = nouveauPV;
 
+    // Log combat
     if (!data.logCombat) data.logCombat = [];
     data.logCombat.push({
       type: "soin",
