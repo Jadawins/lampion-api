@@ -83,6 +83,17 @@ if (cibleOrdre) {
           timestamp
         });
       }
+      // 🏁 Fin de combat détectée ?
+const tousJoueursMorts = data.joueurs.length > 0 && data.joueurs.every(j => j.pv === 0);
+const tousMonstresMorts = data.monstres.length === 0;
+
+if (tousJoueursMorts || tousMonstresMorts) {
+  data.logCombat.push({
+    type: "fin_combat",
+    resultat: tousJoueursMorts ? "défaite" : "victoire",
+    timestamp
+  });
+}
     }
     // 🛑 Retirer le joueur du tour si PV à 0
 if (cibleJoueur && nouveauPV === 0) {
