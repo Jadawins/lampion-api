@@ -39,7 +39,20 @@ module.exports = async function (context, req) {
 
     const pvActuel = cibleEntite.pv || 0;
     const nouveauPV = Math.max(pvActuel - degats, 0);
-    cibleEntite.pv = nouveauPV;
+
+// Met à jour les PV dans toutes les structures
+if (cibleJoueur) {
+  const joueur = data.joueurs.find(j => j.pseudo === cible);
+  if (joueur) joueur.pv = nouveauPV;
+}
+if (cibleMonstre) {
+  const monstre = data.monstres.find(m => m.nom === cible);
+  if (monstre) monstre.pv = nouveauPV;
+}
+if (cibleOrdre) {
+  const ordre = data.ordreTour.find(e => (e.pseudo || e.nom) === cible);
+  if (ordre) ordre.pv = nouveauPV;
+}
 
     if (!data.logCombat) data.logCombat = [];
 
