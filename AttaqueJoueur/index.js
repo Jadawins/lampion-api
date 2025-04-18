@@ -76,6 +76,7 @@ if (cibleOrdre) {
         data.ordreTour = data.ordreTour?.filter(e => e.nom !== cible);
         data.logCombat.push({
           type: "sortie_combat",
+          auteur,
           cible,
           raison: "PV à 0",
           timestamp
