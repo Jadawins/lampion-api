@@ -64,15 +64,23 @@ if (cibleOrdre) {
       timestamp
     });
 
-    if (cibleMonstre && nouveauPV === 0) {
-      // Retirer le monstre de l'ordre du tour
-      data.ordreTour = data.ordreTour?.filter(e => e.nom !== cible);
+    if (nouveauPV === 0) {
       data.logCombat.push({
-        type: "sortie_combat",
+        type: "mort",
+        auteur,
         cible,
-        raison: "PV à 0",
         timestamp
       });
+    
+      if (cibleMonstre) {
+        data.ordreTour = data.ordreTour?.filter(e => e.nom !== cible);
+        data.logCombat.push({
+          type: "sortie_combat",
+          cible,
+          raison: "PV à 0",
+          timestamp
+        });
+      }
     }
 
     const updatedData = JSON.stringify(data, null, 2);
