@@ -83,7 +83,16 @@ if (cibleOrdre) {
           timestamp
         });
       }
-      // 🏁 Fin de combat détectée ?
+        
+      
+}
+    
+    // 🛑 Retirer le joueur du tour si PV à 0
+  if (cibleJoueur && nouveauPV === 0) {
+  data.ordreTour = data.ordreTour?.filter(e => e.pseudo !== cible);
+}
+
+// 🏁 Fin de combat détectée ?
 const tousJoueursMorts = data.joueurs.length > 0 && data.joueurs.every(j => j.pv === 0);
 const tousMonstresMorts = data.monstres.length === 0;
 
@@ -93,11 +102,6 @@ if (tousJoueursMorts || tousMonstresMorts) {
     resultat: tousJoueursMorts ? "défaite" : "victoire",
     timestamp
   });
-}
-    }
-    // 🛑 Retirer le joueur du tour si PV à 0
-if (cibleJoueur && nouveauPV === 0) {
-  data.ordreTour = data.ordreTour?.filter(e => e.pseudo !== cible);
 }
 
     const updatedData = JSON.stringify(data, null, 2);
