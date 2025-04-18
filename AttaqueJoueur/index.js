@@ -63,7 +63,8 @@ module.exports = async function (context, req) {
     }
 
     const updatedData = JSON.stringify(data, null, 2);
-    await blobClient.upload(updatedData, updatedData.length, { overwrite: true });
+await blobClient.upload(updatedData, updatedData.length, { overwrite: true });
+
 
     context.res = {
       status: 200,
