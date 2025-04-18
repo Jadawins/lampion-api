@@ -74,6 +74,7 @@ if (cibleOrdre) {
     
       if (cibleMonstre) {
         data.ordreTour = data.ordreTour?.filter(e => e.nom !== cible);
+        data.monstres = data.monstres?.filter(m => m.nom !== cible);
         data.logCombat.push({
           type: "sortie_combat",
           auteur,
@@ -83,6 +84,10 @@ if (cibleOrdre) {
         });
       }
     }
+    // 🛑 Retirer le joueur du tour si PV à 0
+if (cibleJoueur && nouveauPV === 0) {
+  data.ordreTour = data.ordreTour?.filter(e => e.pseudo !== cible);
+}
 
     const updatedData = JSON.stringify(data, null, 2);
 await blobClient.upload(updatedData, updatedData.length, { overwrite: true });
