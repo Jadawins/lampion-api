@@ -27,21 +27,21 @@ module.exports = async function (context, req) {
     const timestamp = new Date().toISOString();
 
     // Ajout automatique d’un tag "Combat 1", "Combat 2", etc.
-const combatIndex = (data.combats?.length || 0) + 1;
+    const combatIndex = (data.combats?.length || 0) + 1;
 
-const combat = {
-  id: `Combat ${combatIndex}`,
-  joueurs: data.joueurs || [],
-  monstres: data.monstres || [],
-  ordreTour: data.ordreTour || [],
-  indexTour: data.indexTour ?? 0,
-  logCombat: data.logCombat || [],
-  resultat: data.logCombat?.find(e => e.type === "fin_combat")?.resultat || "inconnu",
-  timestampFin: timestamp
-};
+    const combat = {
+      id: `Combat ${combatIndex}`,
+      joueurs: data.joueurs || [],
+      monstres: data.monstres || [],
+      ordreTour: data.ordreTour || [],
+      indexTour: data.indexTour ?? 0,
+      logCombat: data.logCombat || [],
+      resultat: data.logCombat?.find(e => e.type === "fin_combat")?.resultat || "inconnu",
+      timestampFin: timestamp
+    };
 
-data.combats = data.combats || [];
-data.combats.push(combat);
+    data.combats = data.combats || [];
+    data.combats.push(combat);
 
     // Réinitialisation pour prochain combat
     data.monstres = [];
@@ -49,6 +49,14 @@ data.combats.push(combat);
     data.indexTour = 0;
     data.logCombat = [];
     data.combatEnCours = false;
+
+    // Ne conserver que pseudo et pvMax dans les joueurs
+    if (Array.isArray(data.joueurs)) {
+      data.joueurs = data.joueurs.map(j => ({
+        pseudo: j.pseudo,
+        pvMax: j.pvMax
+      }));
+    }
 
     const updated = JSON.stringify(data, null, 2);
     await blobClient.upload(updated, updated.length, { overwrite: true });

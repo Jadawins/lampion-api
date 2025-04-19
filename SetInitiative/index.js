@@ -32,22 +32,27 @@ module.exports = async function (context, req) {
     const existingContent = await streamToString(downloadResponse.readableStreamBody);
     const sessionData = JSON.parse(existingContent);
 
-    // Mettre à jour initiative et pv
-    const joueur = sessionData.joueurs.find(j => j.pseudo === pseudo);
-    if (!joueur) {
-      context.res = {
-        status: 404,
-        body: { error: `Joueur '${pseudo}' introuvable dans la session.` }
+    if (!sessionData.joueurs || !Array.isArray(sessionData.joueurs)) {
+      sessionData.joueurs = [];
+    }
+
+    let joueur = sessionData.joueurs.find(j => j.pseudo === pseudo);
+
+    if (joueur) {
+      joueur.initiative = initiative;
+      joueur.pv = pv;
+      if (typeof pvMax === "number") {
+        joueur.pvMax = pvMax;
+      }
+    } else {
+      const newJoueur = {
+        pseudo,
+        initiative,
+        pv,
+        ...(typeof pvMax === "number" ? { pvMax } : {})
       };
-      return;
+      sessionData.joueurs.push(newJoueur);
     }
-
-    if (typeof pvMax === "number") {
-      joueur.pvMax = pvMax;
-    }
-
-    joueur.initiative = initiative;
-    joueur.pv = pv;
 
     const updatedJson = JSON.stringify(sessionData);
     await blockBlobClient.upload(updatedJson, Buffer.byteLength(updatedJson), { overwrite: true });
