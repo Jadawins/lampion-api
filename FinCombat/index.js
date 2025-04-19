@@ -1,50 +1,77 @@
-const { BlobServiceClient } = require('@azure/storage-blob');
+// ✅ FinCombat/index.js – historisation des combats
+
+const { BlobServiceClient } = require("@azure/storage-blob");
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AzureWebJobsStorage;
+const containerName = "sessions";
 
 module.exports = async function (context, req) {
-  const sessionId = req.body?.sessionId;
+  const { sessionId } = req.body;
+
   if (!sessionId) {
     context.res = {
       status: 400,
-      body: "Paramètre sessionId manquant."
+      body: "sessionId manquant."
     };
     return;
   }
 
   try {
-    const AZURE_STORAGE_CONNECTION_STRING = process.env["AzureWebJobsStorage"];
-    const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
-    const containerClient = blobServiceClient.getContainerClient("sessions");
-    const blockBlobClient = containerClient.getBlockBlobClient(`${sessionId}.json`);
+    const blobClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING)
+      .getContainerClient(containerName)
+      .getBlockBlobClient(`${sessionId}.json`);
 
-    const downloadBlockBlobResponse = await blockBlobClient.download(0);
-    const content = await streamToString(downloadBlockBlobResponse.readableStreamBody);
+    const download = await blobClient.download(0);
+    const content = await streamToText(download.readableStreamBody);
     const data = JSON.parse(content);
 
+    const timestamp = new Date().toISOString();
+
+    // Ajout automatique d’un tag "Combat 1", "Combat 2", etc.
+const combatIndex = (data.combats?.length || 0) + 1;
+
+const combat = {
+  id: `Combat ${combatIndex}`,
+  joueurs: data.joueurs || [],
+  monstres: data.monstres || [],
+  ordreTour: data.ordreTour || [],
+  indexTour: data.indexTour ?? 0,
+  logCombat: data.logCombat || [],
+  resultat: data.logCombat?.find(e => e.type === "fin_combat")?.resultat || "inconnu",
+  timestampFin: timestamp
+};
+
+data.combats = data.combats || [];
+data.combats.push(combat);
+
+    // Réinitialisation pour prochain combat
+    data.monstres = [];
+    data.ordreTour = [];
+    data.indexTour = 0;
+    data.logCombat = [];
     data.combatEnCours = false;
 
-    await blockBlobClient.upload(JSON.stringify(data), Buffer.byteLength(JSON.stringify(data)), {
-      blobHTTPHeaders: { blobContentType: "application/json" }
-    });
+    const updated = JSON.stringify(data, null, 2);
+    await blobClient.upload(updated, updated.length, { overwrite: true });
 
     context.res = {
       status: 200,
-      body: `Combat terminé pour la session ${sessionId}`
+      body: "Combat terminé et historisé."
     };
+
   } catch (err) {
-    context.log.error("Erreur FinCombat:", err.message);
+    console.error("Erreur FinCombat:", err);
     context.res = {
       status: 500,
-      body: "Erreur lors de la mise à jour du fichier de session."
+      body: "Erreur serveur dans FinCombat."
     };
   }
 };
 
-// Fonction utilitaire pour convertir un stream en string
-async function streamToString(readableStream) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    readableStream.on("data", data => chunks.push(data.toString()));
-    readableStream.on("end", () => resolve(chunks.join("")));
-    readableStream.on("error", reject);
-  });
+async function streamToText(readable) {
+  readable.setEncoding("utf8");
+  let data = "";
+  for await (const chunk of readable) {
+    data += chunk;
+  }
+  return data;
 }
