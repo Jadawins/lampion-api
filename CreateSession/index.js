@@ -36,7 +36,8 @@ module.exports = async function (context, req) {
     sessionId,
     nomAventure,
     sessionActive: false,
-    joueurs: []
+    joueurs: [],
+    combats: [] // ✅ Historique des combats vide au départ
   };
 
   try {
