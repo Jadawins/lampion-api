@@ -28,17 +28,16 @@ module.exports = async function (context, req) {
 
     index = (index + 1) % ordre.length;
     data.indexTour = index;
-    const timestamp = new Date().toISOString();
-    const previousIndex = (index - 1 + ordre.length) % ordre.length;
-    const entite = ordre[previousIndex]; // celui qui vient de jouer (ou passer)
-    
+
+    // ✅ Ajouter un log uniquement si fourni
     if (!data.logCombat) data.logCombat = [];
-    
-    data.logCombat.push({
-      type: "passer_tour",
-      auteur: entite?.pseudo || entite?.nom || "inconnu",
-      timestamp
-    });
+    if (req.body?.log) {
+      data.logCombat.push({
+        ...req.body.log,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     await blobClient.upload(JSON.stringify(data), Buffer.byteLength(JSON.stringify(data)), {
       overwrite: true
     });
