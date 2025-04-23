@@ -4,6 +4,7 @@ from azure.storage.blob import BlobServiceClient
 import pdfplumber
 import io
 import json
+import os
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('ParseSrdSorts function triggered.')
