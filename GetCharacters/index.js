@@ -1,13 +1,10 @@
 const { MongoClient } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
-const client = new MongoClient(uri);
 
 module.exports = async function (context, req) {
   try {
-    const userId = req.query.userId;
-    console.log("Requête pour userId :", userId);
-
+    const userId = req.query.userId || req.body?.userId;
     if (!userId) {
       context.res = {
         status: 400,
@@ -16,6 +13,7 @@ module.exports = async function (context, req) {
       return;
     }
 
+    const client = new MongoClient(uri);
     await client.connect();
     const db = client.db("lampion");
 
@@ -28,13 +26,11 @@ module.exports = async function (context, req) {
       status: 200,
       body: characters
     };
-  } catch (error) {
-    console.error("Erreur récupération personnages :", error);
+  } catch (err) {
+    console.error("❌ Erreur MongoDB :", err.message);
     context.res = {
       status: 500,
-      body: "Erreur interne"
+      body: "Erreur MongoDB : " + err.message
     };
-  } finally {
-    await client.close();
   }
 };
