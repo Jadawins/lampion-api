@@ -6,6 +6,7 @@ const client = new MongoClient(uri);
 module.exports = async function (context, req) {
   try {
     const userId = req.query.userId;
+    console.log("Requête pour userId :", userId);
 
     if (!userId) {
       context.res = {
