@@ -1,21 +1,18 @@
-module.exports = async function (context, req) {
+const express = require('express');
+const router = express.Router();
+
+router.get('/', (req, res) => {
   const key = process.env.VITE_SUPABASE_KEY;
   const url = process.env.VITE_SUPABASE_URL;
 
   if (!key || !url) {
-    context.res = {
-      status: 500,
-      body: "Clé ou URL Supabase manquante dans les variables d'environnement."
-    };
-    return;
+    return res.status(500).send("Clé ou URL Supabase manquante dans les variables d'environnement.");
   }
 
-  context.res = {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    body: {
-      key: key,
-      url: url
-    }
-  };
-};
+  res.status(200).json({
+    key: key,
+    url: url
+  });
+});
+
+module.exports = router;
