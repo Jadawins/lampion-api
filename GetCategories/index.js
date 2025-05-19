@@ -1,15 +1,14 @@
-const express = require('express');
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
+const express = require('express');
 const router = express.Router();
 
-const mongoUri = 'mongodb://localhost:27017';
-const dbName = 'lampion';
+const client = new MongoClient(process.env.MONGO_URI);
+const dbName = 'myrpgtable';
 const collectionName = 'categories';
 
 // Route GET pour récupérer les catégories
 router.get('/', async (req, res) => {
-  const client = new MongoClient(mongoUri);
-
   try {
     await client.connect();
     const db = client.db(dbName);
@@ -21,7 +20,7 @@ router.get('/', async (req, res) => {
     console.error('Erreur lors de la récupération des catégories :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   } finally {
-    await client.close();
+    // Pas besoin de fermer ici si tu utilises un client partagé
   }
 });
 
