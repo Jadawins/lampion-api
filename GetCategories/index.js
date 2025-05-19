@@ -9,6 +9,7 @@ const collectionName = 'categories';
 
 // Route GET pour récupérer les catégories
 router.get('/', async (req, res) => {
+  console.log('Route /api/GetCategories appelée');
   try {
     await client.connect();
     const db = client.db(dbName);
