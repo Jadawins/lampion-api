@@ -9,6 +9,7 @@ const collectionName = 'categories';
 // Route GET pour récupérer les catégories
 router.get('/', async (req, res) => {
   console.log('>> ROUTE /api/GetCategories EXECUTED <<');
+  console.log('DEBUG MONGO_URI in Route:', process.env.MONGO_URI);
 
   const client = new MongoClient(process.env.MONGO_URI);
   try {
