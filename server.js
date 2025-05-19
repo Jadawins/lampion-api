@@ -30,4 +30,6 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
     console.log(`API listening on port ${port}`);
+    console.log('ENV:', process.env);
+    console.log('MONGO_URI:', process.env.MONGO_URI);
 });
