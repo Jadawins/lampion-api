@@ -1,42 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-
-console.log('DEBUG __dirname :', __dirname);
-console.log('DEBUG .env content:', fs.readFileSync(path.resolve(__dirname, '../.env'), 'utf8'));
-
-const { MongoClient } = require('mongodb');
 const express = require('express');
 const router = express.Router();
 
-const client = new MongoClient(process.env.MONGO_URI);
-const dbName = 'myrpgtable';
-const collectionName = 'categories';
-
-// Route GET pour récupérer les catégories
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   console.log('>> ROUTE /api/GetCategories EXECUTED <<');
-  console.log('DEBUG MONGO_URI in Route:', process.env.MONGO_URI);
-
-  const client = new MongoClient(process.env.MONGO_URI);
-  try {
-    await client.connect();
-    console.log('>> Connexion réussie <<');
-    const db = client.db('myrpgtable');
-    const collection = db.collection('categories');
-    const categories = await collection.find().toArray();
-    console.log('>> Catégories récupérées <<', categories);
-    res.status(200).json(categories);
-  } catch (error) {
-  console.error('>> Erreur capturée :', JSON.stringify(error, null, 2));
-  res.status(500).json({ 
-    error: error.message,
-    stack: error.stack,
-    fullError: JSON.stringify(error, null, 2)
-  });
-} finally {
-    await client.close();
-    console.log('>> Client Mongo fermé <<');
-  }
+  res.json({ success: true, message: 'La route fonctionne, sans Mongo' });
 });
 
 module.exports = router;
