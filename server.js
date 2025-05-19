@@ -1,4 +1,5 @@
 require('dotenv').config();
+console.log('DEBUG MONGO_URI:', process.env.MONGO_URI);
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
