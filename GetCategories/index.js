@@ -17,8 +17,8 @@ router.get('/', async (req, res) => {
     const categories = await collection.find().toArray();
     res.status(200).json(categories);
   } catch (error) {
-    console.error('Erreur lors de la récupération des catégories :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+  console.error('Erreur lors de la récupération des catégories :', error.message, error.stack);
+  res.status(500).json({ error: error.message });
   } finally {
     // Pas besoin de fermer ici si tu utilises un client partagé
   }
