@@ -13,17 +13,19 @@ router.get('/', async (req, res) => {
   const client = new MongoClient(process.env.MONGO_URI);
   try {
     await client.connect();
+    console.log('>> Connexion réussie <<');
     const db = client.db('myrpgtable');
     const collection = db.collection('categories');
     const categories = await collection.find().toArray();
+    console.log('>> Catégories récupérées <<', categories);
     res.status(200).json(categories);
   } catch (error) {
-    console.error('Erreur détaillée :', JSON.stringify(error, null, 2));
+    console.error('>> Erreur capturée :', JSON.stringify(error, null, 2));
     res.status(500).json({ error: error.message });
   } finally {
     await client.close();
+    console.log('>> Client Mongo fermé <<');
   }
 });
-
 
 module.exports = router;
