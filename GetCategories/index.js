@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+throw new Error('TEST - Erreur levée à l’import du routeur GetCategories');
 const express = require('express');
 const router = express.Router();
 
