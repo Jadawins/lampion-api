@@ -1,3 +1,9 @@
+const fs = require('fs');
+const path = require('path');
+
+console.log('DEBUG __dirname :', __dirname);
+console.log('DEBUG .env content:', fs.readFileSync(path.resolve(__dirname, '../.env'), 'utf8'));
+
 const { MongoClient } = require('mongodb');
 const express = require('express');
 const router = express.Router();
