@@ -9,6 +9,14 @@ const port = 3000;
 
 app.use(express.json());
 
+try {
+    const testRouter = require('./GetCategories');
+    console.log('GetCategories route loaded manually:', typeof testRouter);
+    app.use('/api/GetCategories', testRouter);
+} catch (error) {
+    console.error('Erreur lors du chargement manuel de GetCategories :', error);
+}
+
 // Auto-loader de toutes les routes situées dans des dossiers
 fs.readdirSync(__dirname).forEach(dir => {
     const fullPath = path.join(__dirname, dir);
