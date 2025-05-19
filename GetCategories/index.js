@@ -27,9 +27,13 @@ router.get('/', async (req, res) => {
     console.log('>> Catégories récupérées <<', categories);
     res.status(200).json(categories);
   } catch (error) {
-    console.error('>> Erreur capturée :', JSON.stringify(error, null, 2));
-    res.status(500).json({ error: error.message, stack: error.stack });
-  } finally {
+  console.error('>> Erreur capturée :', JSON.stringify(error, null, 2));
+  res.status(500).json({ 
+    error: error.message,
+    stack: error.stack,
+    fullError: JSON.stringify(error, null, 2)
+  });
+} finally {
     await client.close();
     console.log('>> Client Mongo fermé <<');
   }
