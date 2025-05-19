@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection(collectionName);
 
-    const categories = await collection.find().toArray();
+    const categories = await collection.find({ name: "Armes de base" }).toArray();
     res.status(200).json(categories);
   } catch (error) {
   console.error('Erreur lors de la récupération des catégories :', error.message, error.stack);
