@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const categories = await collection.find().toArray();
     res.status(200).json(categories);
   } catch (error) {
-    console.error('Erreur lors de la récupération des catégories :', error.message, error.stack);
+    console.error('Erreur détaillée :', JSON.stringify(error, null, 2));
     res.status(500).json({ error: error.message });
   } finally {
     await client.close();
