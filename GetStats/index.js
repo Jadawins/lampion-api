@@ -1,4 +1,7 @@
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
+const express = require('express');
+const router = express.Router();
 
 module.exports = async function (req, res) {
   const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -25,3 +28,4 @@ module.exports = async function (req, res) {
     await client.close();
   }
 };
+module.exports = router;
