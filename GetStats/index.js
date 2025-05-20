@@ -25,3 +25,5 @@ module.exports = async function (req, res) {
     await client.close();
   }
 };
+
+module.exports = router;
