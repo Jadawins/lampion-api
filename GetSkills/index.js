@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
   try {
     await client.connect();
     const db = client.db('myrpgtable');
-    const competences = await db.collection('competences').find().toArray();
+    const competences = await db.collection('skills').find().toArray();
     res.status(200).json(competences);
   } catch (error) {
     console.error('Erreur GetSkills :', error);
