@@ -6,7 +6,7 @@ require('dotenv').config();
 const uri = process.env.MONGO_URI || 'mongodb://localhost:27017';
 
 // GET /api/GetDamageTypes
-router.get('/api/GetDamageTypes', async (req, res) => {
+router.get('/', async (req, res) => {
   const mongoUri = process.env.MONGO_URI;
   if (!mongoUri) {
     return res.status(500).json({ error: 'MONGO_URI non défini dans les variables d’environnement' });
